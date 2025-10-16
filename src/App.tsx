@@ -90,6 +90,22 @@ function App() {
       setUsers((prev) => prev.filter(u => u.username.toLowerCase() !== username.toLowerCase()));
   }
 
+  // Pre-populate users from .env on first load
+  useEffect(() => {
+    const envUsers = (import.meta.env.VITE_GITHUB_USERS || '').split(',').map(u => u.trim()).filter(Boolean);
+    if (envUsers.length > 0) {
+      setUsers(prev => {
+        // Only add users not already present
+        const existing = prev.map(u => u.username.toLowerCase());
+        const newUsers: UserStats[] = envUsers
+          .filter(u => !existing.includes(u.toLowerCase()))
+          .map(username => ({ username }));
+        return [...prev, ...newUsers];
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Refetch all users' stats when date range changes
   useEffect(() => {
     if (!fromDate || !toDate || users.length === 0) return;
